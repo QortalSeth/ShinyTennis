@@ -89,19 +89,21 @@ playerSummary = players %>% group_by(player,year,gender)%>% summarize(avgPoints 
 playerWins = players %>% group_by(player = winner) %>% summarize(wins = n()/2) %>% arrange(desc(wins))
 playerLosses = players %>% group_by(player = loser) %>% summarize(losses = n()/2)
 
-winRatiosTotal = playerWins %>% inner_join(playerLosses) %>% mutate(matchesPlayed = wins+losses, winRatio = wins/matchesPlayed ) %>% arrange(desc(matchesPlayed))
+winRatiosTotal = playerWins %>% 
+  inner_join(playerLosses) %>% 
+  mutate(matchesPlayed = wins+losses, winRatio = wins/matchesPlayed ) %>% 
+  filter(matchesPlayed>=20 & wins>10)%>% 
+  arrange(desc(matchesPlayed))
 
 #plot histogram of win% of players
 winHistogram = winRatiosTotal %>% filter(matchesPlayed>=10) %>% ggplot(aes(x=winRatio)) + geom_histogram()
-
-top10 = winRatiosTotal %>% head(10)
 
 # get win ratios by year
 playerWinsByYear = players %>% group_by(player = winner, year) %>% summarize(wins = n()/2)
 playerLossesByYear = players %>% group_by(player = loser, year) %>% summarize(losses = n()/2)
 
 winRatiosByYear = playerWinsByYear %>% inner_join(playerLossesByYear) %>% mutate(winRatio = wins/(wins+losses) ) %>% arrange(desc(winRatio))
-winRatiosByYear = winRatiosByYear %>% filter(player %in% top10$player) %>% arrange(player)
+winRatiosByYear = winRatiosByYear %>% arrange(player)
 
 tournamentWins = finalPoint %>% group_by(winner, gender) %>% filter(round == 'F') %>% summarize(wins = n()) %>%  arrange(desc(wins))
 tournamentWinsByYear = finalPoint %>% group_by(winner, year, gender) %>% filter(round == 'F') %>% summarize(wins = n()) %>%  arrange(desc(wins))

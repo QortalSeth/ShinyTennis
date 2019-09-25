@@ -14,7 +14,5 @@ shinyServer(function(input, output) {
 
     winRatios(input,output)
     tournamentWins(input,output)
-    
-
-
+    winHistogram(input, output)
 })

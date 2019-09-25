@@ -16,6 +16,16 @@ intro = tabItem(tabName = 'Intro' ,
 
 playerData = tabItem(tabName = 'playerData',
         fluidRow(
-          selectInput('chosenPlayer', label = "Choose a player", 
-                      choices = playerWins$player,),
-          plotOutput("winRatios")))
+          selectInput('chosenPlayer', label = "Choose a player", choices = winRatiosTotal$player),
+          column(6, plotOutput("winRatios")),
+          
+          column(6,plotOutput("tournamentWins"))
+         
+          
+          
+          
+          
+          ),
+        fluidRow(plotOutput("winHistogram"))
+        
+        )
