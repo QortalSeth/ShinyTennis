@@ -9,7 +9,7 @@
 
 library(shiny)
 library(shinydashboard)
-source('uiHelper.R')
+source('Helpers/uiHelper.R')
 
 # Define UI for application that draws a histogram
 shinyUI(

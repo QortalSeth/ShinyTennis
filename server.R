@@ -8,11 +8,13 @@
 #
 
 library(shiny)
-source('serverHelper.R')
+source('Helpers/serverHelper.R')
 
 shinyServer(function(input, output) {
 
     winRatios(input,output)
     tournamentWins(input,output)
     winHistogram(input, output)
+    matchesPlayed(input,output)
+    dWinRatioByYear(input,output)
 })

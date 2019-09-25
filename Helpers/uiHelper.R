@@ -16,16 +16,29 @@ intro = tabItem(tabName = 'Intro' ,
 
 playerData = tabItem(tabName = 'playerData',
         fluidRow(
-          selectInput('chosenPlayer', label = "Choose a player", choices = winRatiosTotal$player),
-          column(6, plotOutput("winRatios")),
+          selectInput('chosenPlayer', label = "Choose a player", choices = tournamentWinsFiltered$winner),
+          box(plotOutput("winRatios")),
           
-          column(6,plotOutput("tournamentWins"))
+          box(plotOutput("tournamentWins"))
          
           
           
           
           
           ),
-        fluidRow(plotOutput("winHistogram"))
+        fluidRow( box(plotOutput("matchesPlayed")),
+                  box(plotOutput("winHistogram"))
+                  
+                  )
         
         )
+
+derivatives = tabItem(tabName = 'rise&Fall',
+                    fluidRow(
+                      selectInput('chosenPlayer', label = "Choose a player", choices = tournamentWinsFiltered$winner),
+                      box(plotOutput('dWinRatioByYear'))
+                    )
+                    
+                    )
+
+

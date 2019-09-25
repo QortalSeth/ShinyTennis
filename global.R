@@ -11,7 +11,7 @@ library(tidyr)
 library(stringi)
 
 
-
+source('Helpers/derivatives.R')
 # read data
 menPoints = read_csv('Tennis/charting-m-points.csv')
 womenPoints = read_csv('Tennis/charting-w-points.csv')
@@ -92,7 +92,6 @@ playerLosses = players %>% group_by(player = loser) %>% summarize(losses = n()/2
 winRatiosTotal = playerWins %>% 
   inner_join(playerLosses) %>% 
   mutate(matchesPlayed = wins+losses, winRatio = wins/matchesPlayed ) %>% 
-  filter(matchesPlayed>=20 & wins>10)%>% 
   arrange(desc(matchesPlayed))
 
 #plot histogram of win% of players
@@ -106,6 +105,11 @@ winRatiosByYear = playerWinsByYear %>% inner_join(playerLossesByYear) %>% mutate
 winRatiosByYear = winRatiosByYear %>% arrange(player)
 
 tournamentWins = finalPoint %>% group_by(winner, gender) %>% filter(round == 'F') %>% summarize(wins = n()) %>%  arrange(desc(wins))
+
+
+tournamentWinsFiltered = tournamentWins %>% filter(wins>=10)
+tournamentWinsFiltered
+
 tournamentWinsByYear = finalPoint %>% group_by(winner, year, gender) %>% filter(round == 'F') %>% summarize(wins = n()) %>%  arrange(desc(wins))
 
 
