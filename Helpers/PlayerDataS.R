@@ -29,7 +29,12 @@ winRatios = function(input,output){
   chosenPlayer = input$chosenPlayer
   plotTitle = paste0(chosenPlayer,'\'s Win Ratios in Each Year')
   
-  result = winRatiosByYear  %>% filter(player== chosenPlayer) 
+  gender = input$gender
+  print(gender)
+  if(gender == 'Both'){gender = TRUE}
+  
+  
+  result = winRatiosByYear  %>% filter(player== chosenPlayer, gender == gender) 
   print(result)
   
   plotColor = 'red'
@@ -93,16 +98,5 @@ matchesPlayed = function(input,output)
   
 }
 
-dWinRatioByYear = function(input,output)
-{
-  output$dWinRatio = renderPlot({
-    chosenPlayer = input$chosenPlayer
-    plotTitle = paste0(chosenPlayer,'\'s Changes in Win Ratio Over Time')
-    plotColor = 'red'
-    
-    result = dwins %>% filter (player==chosenPlayer)
-    result %>% ggplot(aes(x=year, y=DwinRatio)) + geom_point(color = plotColor) + geom_line(color = plotColor) + labs(x= 'Year', y='Win Ratio Derivative' , title = plotTitle)
-    
-  })
-}
+
 

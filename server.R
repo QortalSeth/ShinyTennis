@@ -8,7 +8,8 @@
 #
 
 library(shiny)
-source('Helpers/serverHelper.R')
+source('Helpers/PlayerDataS.R')
+source('Helpers/DerivativesS.R')
 
 shinyServer(function(input, output) {
 
