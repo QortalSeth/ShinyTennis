@@ -1,6 +1,6 @@
 library(data.table)
 
-install.packages("shinydashboard")
+#install.packages("shinydashboard")
 library(shinydashboard)
 library(shiny)
 library(stringr)
@@ -10,8 +10,10 @@ library(ggplot2)
 library(tidyr)
 library(stringi)
 
-source('Helpers/PlayerDataG.R')
+source('Helpers/MatchDataG.R')
 source('Helpers/DerivativesG.R')
+source('Helpers/CommonFunctions.R')
+source('Helpers/PointDataG.R')
 
 # read data
 menPoints = read_csv('Tennis/charting-m-points.csv')
@@ -74,4 +76,6 @@ finalPoint = points %>% group_by(match_id) %>% filter(Pt == max(Pt)) %>%  arrang
 finalPoint
 
 
+#radioButtons = radioButtons('gender', 'Player Gender to examine:', choices = c('M','W','Both'), inline=TRUE, selected = 'Both')
+#playersC = selectInput('chosenPlayer', label = "Choose a player", choices = tournamentWinsFiltered$winner)
 

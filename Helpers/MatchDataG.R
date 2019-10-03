@@ -32,8 +32,11 @@ winRatiosByYear = winRatiosByYear %>% arrange(player)
 tournamentWins = finalPoint %>% group_by(winner, gender) %>% filter(round == 'F') %>% summarize(wins = n()) %>%  arrange(desc(wins))
 
 
-tournamentWinsFiltered = tournamentWins %>% filter(wins>=10)
+tournamentWinsFiltered = tournamentWins %>% filter(wins>=10) %>% arrange(winner)
 tournamentWinsFiltered
+
+tournamentWinsFilteredMale = tournamentWinsFiltered %>% filter(gender == 'M')
+tournamentWinsFilteredFemale = tournamentWinsFiltered %>% filter(gender == 'W')
 
 tournamentWinsByYear = finalPoint %>% group_by(winner, year, gender) %>% filter(round == 'F') %>% summarize(wins = n()) %>%  arrange(desc(wins))
 

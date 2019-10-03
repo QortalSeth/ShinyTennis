@@ -6,16 +6,25 @@
 #
 #    http://shiny.rstudio.com/
 #
-
-library(shiny)
-source('Helpers/PlayerDataS.R')
+source('Helpers/MatchDataS.R')
 source('Helpers/DerivativesS.R')
+source('Helpers/PointDataS.R')
 
-shinyServer(function(input, output) {
-
+shinyServer(function(input, output, session) {
+ #   updateGender(input, output, session)
+    
     winRatios(input,output)
     tournamentWins(input,output)
     winHistogram(input, output)
     matchesPlayed(input,output)
+    
+    
     dWinRatioByYear(input,output)
+    dTourneyWinsByYear(input,output)
+    
+    meanPt(input,output)
+    meanVolleyLength(input,output)
+    
+    
+    
 })
