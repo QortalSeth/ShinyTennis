@@ -14,6 +14,8 @@ source('Helpers/MatchDataG.R')
 source('Helpers/DerivativesG.R')
 source('Helpers/CommonFunctions.R')
 source('Helpers/PointDataG.R')
+source('Helpers/NewbsVsVetsG.r')
+source('Helpers/TournamentPerformanceG.R')
 
 # read data
 menPoints = read_csv('Tennis/charting-m-points.csv')

@@ -8,6 +8,7 @@
 #
 
 source('Helpers/uiHelper.R')
+source('Helpers/uiIntro.R')
 
 # Define UI for application that draws a histogram
 shinyUI(
@@ -20,19 +21,21 @@ shinyUI(
         sidebarMenu(
             
             menuItem('Intro', tabName = 'Intro' ),
-            menuItem('Match Data', tabName = 'matchData'),
-            menuItem('Biggest Rise/Falls Over Time', tabName = 'riseAndFall'),
             menuItem('Point Data', tabName = 'pointData'),
-            menuItem('Newbs VS. Veterans Performance', tabName = 'newbVSvets'),
+            menuItem('Match Data', tabName = 'matchData'),
             menuItem('Tournament Performance', tabName = 'tournamentPerformance'),
-            menuItem('Conclusion', tabName = 'Conclusion')
+            menuItem('Newbs VS. Veterans Performance', tabName = 'newbsVsVets'),
+            menuItem('Biggest Rise/Falls Over Time', tabName = 'riseAndFall')
+            
+            
+            
         )
         
     ),                  
                   
                   
     dashboardBody(
-        tabItems(intro, matchData, riseAndFall, pointData)
+        tabItems(intro, pointData, matchData, tournamentPerformance, newbsVsVets, riseAndFall )
     )
     )
     

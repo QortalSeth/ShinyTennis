@@ -1,5 +1,14 @@
 
 
+pointData = tabItem(tabName = 'pointData',
+                    fluidRow(
+                      selectInput('chosenPlayer1P', label = "Choose Player1", choices = tournamentWinsFiltered$winner),
+                      selectInput('chosenPlayer2P', label = "Choose Player2", choices = tournamentWinsFiltered$winner, selected = head(tournamentWinsFiltered$winner,2)),
+                      box(plotOutput('meanPtsPerMatch')),
+                      box(plotOutput('meanVolleyLength'))
+                    ))
+
+
 matchData = tabItem(tabName = 'matchData',
                      fluidRow(
                        selectInput('chosenPlayer1M', label = "Choose Player1", choices = tournamentWinsFiltered$winner),
@@ -12,7 +21,25 @@ matchData = tabItem(tabName = 'matchData',
                              )
                      )
 
+tournamentPerformance = tabItem(tabName = 'tournamentPerformance',
+                                fluidRow(
+                                  selectInput('chosenTournament', label = "Choose a Tournament", choices = totalWinsFiltered$tournamentName),
+                                  box(plotOutput('tournamentWinners')),
+                                  box(plotOutput('tournamentParticipators'))
+                                ))
 
+
+
+
+newbsVsVets = tabItem(tabName = 'newbsVsVets',
+                     fluidRow(
+                       selectInput('chosenPlayer1N', label = "Choose Player1", choices = tournamentWinsFiltered$winner),
+                       selectInput('chosenPlayer2N', label = "Choose Player2", choices = tournamentWinsFiltered$winner, selected = head(tournamentWinsFiltered$winner,2)),
+                       box(plotOutput('winRatiosNormalized')),
+                       box(plotOutput('tournamentWinsNormalized'))
+                     ), 
+                     fluidRow( box(plotOutput('matchesPlayedNormalized'), width = '200em')
+                     ))
 
 riseAndFall = tabItem(tabName = 'riseAndFall',
                       fluidRow(
@@ -22,29 +49,5 @@ riseAndFall = tabItem(tabName = 'riseAndFall',
                         box(plotOutput('dTourneyWinsByYear'))
                       ))
 
-pointData = tabItem(tabName = 'pointData',
-                    fluidRow(
-                      selectInput('chosenPlayer1P', label = "Choose Player1", choices = tournamentWinsFiltered$winner),
-                      selectInput('chosenPlayer2P', label = "Choose Player2", choices = tournamentWinsFiltered$winner, selected = head(tournamentWinsFiltered$winner,2)),
-                      box(plotOutput('meanPtsPerMatch')),
-                      box(plotOutput('meanVolleyLength'))
-                    ))
-
-newbVSvets = tabItem(tabName = 'newbVSvets',
-                     fluidRow(
-                       selectInput('chosenPlayer1N', label = "Choose Player1", choices = tournamentWinsFiltered$winner),
-                       selectInput('chosenPlayer2N', label = "Choose Player2", choices = tournamentWinsFiltered$winner, selected = head(tournamentWinsFiltered$winner,2)),
-                       box(plotOutput('')),
-                       box(plotOutput(''))
-                     ))
 
 
-
-intro = tabItem(tabName = 'Intro' ,
-                fluidRow(box(width=12,
-                             h1('Welcome'),
-                             p('This app was made to visualize and analyze statistically 
-                significant patterns in the data of tennis matches over 
-                the last 50 years.')      
-                )
-                ))

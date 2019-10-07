@@ -1,0 +1,430 @@
+
+
+```{r, message=FALSE, warning=FALSE}
+#install.packages('shiny')
+
+library(shiny)
+library(stringr)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(tidyr)
+library(stringi)
+
+
+
+# read data
+menPoints = read_csv('Tennis/charting-m-points.csv')
+womenPoints = read_csv('Tennis/charting-w-points.csv')
+
+menPoints
+
+# separate match_id into relevant fields
+
+matchIDSeperator = function(df)
+{
+  returnValue = df %>% separate(match_id, sep = '-',c('date','gender','tournamentName','round','player1','player2'), remove = FALSE) %>% 
+  mutate(date = as.Date(date, format = "%Y%m%d" )) %>% 
+    select(match_id, date, gender, tournamentName, round, player1,player2, Pt,Set1,Set2,Gm1,Gm2, Pts, Serving, PtWinner, rallyLen, Notes)
+  
+  returnValue = returnValue %>% mutate(
+    month = as.numeric(substr(date, 6,7 )), 
+    year = as.numeric(substr(date,1,4)), 
+    decade = floor(year/10)*10,
+    SetNum = ifelse(PtWinner==1, Set1+1, Set2+1), 
+    GameNum = ifelse(PtWinner==1, Gm1+1, Gm2+1))
+  
+  
+  return (returnValue)
+}
+
+#remove empty data
+filterData = function(df)
+{
+  returnValue = df %>% 
+    filter( (PtWinner=='1' | PtWinner=='2') & !is.na(year) ) %>% 
+    mutate(PtWinner = as.numeric(PtWinner), rallyLen = as.numeric(rallyLen))
+  
+  
+  
+return(returnValue)
+}
+
+
+cleanPlayerNames = function(df){
+  returnValue = df %>% mutate(player1 = gsub('_',' ', player1 ), player2 = gsub('_',' ', player2 )) %>% 
+    mutate(player1 = stri_enc_toutf8(player1), player2 = stri_enc_toutf8(player2 )) %>% 
+    mutate(player1 = stri_trim(player1), player2 = stri_trim(player2 ))
+  
+}
+
+
+menPoints
+
+menPoints = matchIDSeperator(menPoints)
+womenPoints = matchIDSeperator(womenPoints)
+
+menPoints = filterData(menPoints)
+womenPoints = filterData(womenPoints)
+
+menPoints = cleanPlayerNames(menPoints)
+
+
+womenPoints = cleanPlayerNames(womenPoints)
+
+
+menPoints
+womenPoints
+
+points = full_join(menPoints, womenPoints) %>% mutate(winner = ifelse(PtWinner==1,player1,player2), loser = ifelse(PtWinner==1,player2,player1)) 
+
+finalPoint = points %>% group_by(match_id) %>% filter(Pt == max(Pt)) %>%  arrange(date)
+finalPoint
+
+
+
+```
+  
+  
+
+```{r, message=FALSE, warning=FALSE}
+#1 Best Player of all time
+
+ # add 2 rows to each game, one for each player in that game
+ player1s = finalPoint %>% mutate(player = player1)
+ player2s = finalPoint %>% mutate(player = player2)
+  players = full_join(player1s, player2s) %>% 
+  arrange(match_id)
+  players
+ 
+  # players has double the number of rows
+ playerSummary = players %>% group_by(player,year,gender)%>% summarize(avgPoints = mean(Pt)) %>% arrange(year,player) 
+ playerSummary
+ 
+
+ 
+ 
+ 
+ 
+# get total win ratios of players
+ 
+ playerWins = players %>% group_by(player = winner) %>% summarize(wins = n()/2)
+ playerWins
+ 
+playerLosses = players %>% group_by(player = loser) %>% summarize(losses = n()/2)
+playerLosses
+
+winRatiosTotal = playerWins %>% inner_join(playerLosses) %>% mutate(matchesPlayed = wins+losses, winRatio = wins/matchesPlayed ) %>% arrange(desc(matchesPlayed))
+winRatiosTotal
+
+
+#plot histogram of win% of players
+winHistogram = winRatiosTotal %>% filter(matchesPlayed>=10) %>% ggplot(aes(x=winRatio)) + geom_histogram()
+winHistogram
+
+top10 = winRatiosTotal %>% head(10)
+top10
+
+# get win ratios by year
+ playerWinsByYear = players %>% group_by(player = winner, year) %>% summarize(wins = n()/2)
+playerWinsByYear
+ 
+playerLossesByYear = players %>% group_by(player = loser, year) %>% summarize(losses = n()/2)
+playerLossesByYear
+
+winRatiosByYear = playerWinsByYear %>% inner_join(playerLossesByYear) %>% mutate(winRatio = wins/(wins+losses) ) %>% arrange(desc(winRatio))
+
+
+winRatiosByYear = winRatiosByYear %>% filter(player %in% top10$player) %>% arrange(player)
+winRatiosByYear
+
+winRatiosByYear  %>% ggplot(aes(x=year, y=winRatio, color = player)) + geom_point() + geom_line()
+
+
+
+
+
+
+
+
+# get tournament winners
+tournamentWins = finalPoint %>% group_by(winner, gender) %>% filter(round == 'F') %>% summarize(wins = n()) %>%  arrange(desc(wins))
+tournamentWins
+
+tournamentWinsFiltered = tournamentWins %>% filter(wins>=10)
+tournamentWinsFiltered
+
+tournamentWinsByYear = finalPoint %>% group_by(winner, year, gender) %>% filter(round == 'F') %>% summarize(wins = n()) %>%  arrange(desc(wins))
+tournamentWinsByYear
+
+
+
+tournamentWins %>% ggplot(aes(x=winner, y=wins)) + geom_bar(stat='identity') + facet_wrap(~gender)
+tournamentWinsByYear %>% ggplot(aes(x=year, y=wins, color = gender)) + geom_point() + geom_line()
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+#2 Biggest Rise/Fall over time
+# derivative of tournement wins and win%
+
+winRatiosByYear
+
+
+  '
+  This function returns a vector for a column of derivatives 
+  
+  params
+  df: a dataframe
+  columnName: the name of the column to get derivatives on
+  groupName: the name of the column to group data by 
+  
+  '
+  
+getDerivative = function(df,columnName,groupName)
+{
+  
+  
+  # print(c("name is: ",name,'\n', 'id is: ' ,id))
+  newColumn = vector()
+
+group = vector()
+for (i in 1:nrow(df))
+{
+  if(df[i,groupName] %in% group)
+  {
+  newColumn = c(newColumn,df[i,columnName] - df[i-1,columnName])
+  }
+  else
+    {
+  group = c(group, df[i,groupName] )
+   newColumn = c(newColumn, 0)
+  }
+}
+  
+#print(newColumn)
+
+return(unlist(newColumn))
+}
+
+dWins = winRatiosByYear %>% arrange(player, year)
+dWins$DwinRatio = getDerivative(dWins, 'winRatio', 'player')
+dWins
+
+dWins %>% ggplot(aes(x=year, y=DwinRatio, color = player)) + geom_point() + geom_line()
+
+#get top 10 tourney winners
+top10Twins = tournamentWins %>% head(10)
+top10Twins
+
+
+#assemble derivative of wins
+dTourneyWins = tournamentWinsByYear %>% arrange(winner,year,gender)
+dTourneyWins$DerivativeTourneyWins = getDerivative(dTourneyWins,'wins','winner')
+dTourneyWins
+
+dTourneyWins %>% arrange(desc(wins)) %>% filter(winner %in% top10Twins$winner) %>%  ggplot(aes(x=year, y=DerivativeTourneyWins, color = winner)) + geom_point() + geom_line()
+
+
+
+
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+#3 Men VS. Women Performance
+ 
+ # plot average # of points per game over time
+ finalPoint %>% 
+ group_by(year, gender)%>% 
+ summarize(avgPoints = mean(Pt)) %>% 
+ arrange(year) %>% ggplot(aes(x=year, y=avgPoints, color = gender)) + geom_point() + geom_smooth()
+ 
+
+ 
+ #plot average # of points grouped by total set nums
+ finalPoint %>% 
+ group_by(year, gender,SetNum)%>% 
+ summarize(avgPoints = mean(Pt)) %>% 
+ arrange(year) %>% ggplot(aes(x=year, y=avgPoints, color = gender)) + geom_point() + geom_line() +  facet_wrap(~SetNum)
+ 
+ 
+ #plot average rally length over time
+  finalPoint %>% 
+ group_by(year, gender)%>% 
+ summarize(avgRallyLength = mean(rallyLen)) %>% 
+ arrange(year) %>% 
+ ggplot(aes(x=year, y=avgRallyLength, color = gender)) + geom_point() + geom_smooth()
+  
+  #plot average rally length grouped by total set nums
+   finalPoint %>% 
+ group_by(year, gender,SetNum)%>% 
+ summarize(avgRallyLength = mean(rallyLen)) %>% 
+ arrange(year) %>% 
+ ggplot(aes(x=year, y=avgRallyLength, color = gender)) + geom_point() + geom_line() +  facet_wrap(~SetNum)
+
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+#4 Newbs VS. Veterans
+
+# normalize by when player started
+
+#plot win ratios by starting year
+dWins = dWins %>% arrange(player, year)
+dTourneyWins = dTourneyWins %>% arrange(winner, year)
+
+startYear = dWins %>% group_by(player) %>% summarize(startYear = min(year))
+startYear
+
+dWins = inner_join(startYear, dWins)%>% mutate(Dyear = year - startYear) %>% select(-startYear)
+dWins
+
+
+dWins %>% ggplot(aes(x=Dyear, y=winRatio, color = player)) + geom_point()+geom_line()
+dWins %>% ggplot(aes(x=Dyear, y=DwinRatio, color = player)) + geom_point()+geom_line()
+
+#plot tourney wins by startind year
+
+startYear = dTourneyWins %>% group_by(winner) %>% summarize(startYear = min(year))
+startYear
+
+dTourneyWins = inner_join(startYear, dTourneyWins)%>% mutate(Dyear = year - startYear) %>% select(-startYear)
+dTourneyWins
+
+
+
+dTourneyWins %>% filter(winner %in% top10Twins$winner) %>% ggplot(aes(x=Dyear, y=wins, color = winner)) + geom_point()+geom_line()
+
+# make plot using dyear and dWinRatio
+
+```
+
+
+
+
+
+```{r, message=FALSE, warning=FALSE}
+#5 Player Performance by Month
+
+#histogram of rally length
+points %>% ggplot(aes(x=rallyLen)) + geom_histogram(binwidth = 10)
+
+
+
+# average rally length by month
+
+m = points %>% 
+  group_by(match_id, gender, month) %>% 
+  summarize(meanRallyLength = mean(rallyLen))
+m
+
+m = m %>% group_by(month, gender) %>% summarize(meanRallyLength = mean(meanRallyLength, na.rm = TRUE))
+m
+
+m %>%  ggplot(aes(x =month, y=meanRallyLength, fill=gender)) + geom_bar(stat='identity', position = position_dodge())
+
+
+finalPoint
+#average Pts by month
+m = finalPoint %>% 
+  group_by(month, gender, SetNum) %>% 
+  summarize(meanPt = mean(Pt), medianPt = median(Pt))
+
+
+# Display Mean Pt
+m %>% ggplot(aes(x=month, y= meanPt, color=gender )) +  geom_point() + geom_smooth() + facet_wrap(~SetNum)
+
+#Display Median Pt
+#m %>% ggplot(aes(x=month, y= medianPt, color=gender )) +  geom_point() + geom_smooth() 
+  
+
+# Histogram without facet wrap
+m %>% ggplot(aes(x=meanPt, fill=gender )) + geom_histogram()
+
+# Histogram with facet wrap
+  m %>% ggplot(aes(x=meanPt, fill=gender )) + geom_histogram() + facet_wrap(~month)
+  
+  # add historgram of Pts in all games
+  finalPoint %>% ggplot( aes(x=Pt, )) + geom_histogram() + facet_wrap(~gender)
+  
+
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+#6 Touranament Data
+
+tournamentPerformance = finalPoint %>% 
+  group_by(tournamentName, round,  winner) %>% 
+  summarize(wins = n()) %>%  
+  arrange(desc(wins))
+tournamentPerformance
+
+totalWins = finalPoint %>% group_by(tournamentName) %>% filter(round == 'F') %>% summarize(wins = n()) %>% arrange(desc(wins))
+totalWins
+
+totalWinsFiltered = totalWins %>% filter(wins>=20)
+
+tournamentNames = points %>%  distinct(tournamentName) 
+tournamentNames
+
+tournamentParticipation = players %>% group_by(tournamentName, player) %>% summarize (count = n()) %>% arrange(desc(count))
+tournamentParticipation
+
+
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+# Misc Data
+#number of points over time/tournaments  (scatter plot with regression line)
+
+
+
+
+
+
+# plot average points over time
+
+
+
+
+finalPoint = points %>% group_by(match_id) %>% summarize(finalPoint = max(Pt))  
+finalPoint
+
+finalPoint = finalPoint %>% inner_join(points, by='match_id') %>% filter(Pt==finalPoint) %>% select(-finalPoint) 
+finalPoint
+
+
+ finalPoint %>%  ggplot(aes(x=date, y=Pt, color = gender)) + geom_point() + geom_smooth()
+ 
+ 
+ finalPoint %>%  ggplot(aes(x=Pt, fill = gender)) + geom_histogram() + geom_density()
+ 
+ 
+ 
+ # points by Tournament
+ 
+ tournaments = finalPoint %>% group_by(tournamentName, year, round) %>%  filter(round == 'SF' | round == 'F') %>% summarize(m =mean (Pt))
+ tournaments
+
+finalPoint %>%  ggplot(aes(x = tournamentName, y= m, color = round) ) + geom_point()+ facet_wrap(~round)
+
+
+#data for tournaments is lacking in most rounds
+#data won't plot
+
+
+
+
+#4 histogram of # of tournaments per year and # of players in tournaments (show tournaments player is in)
+tournamentsCount = finalPoint %>% group_by(tournamentName, year) %>% summarize(count = n())
+tournamentsCount
+
+g = tournamentsCount %>% group_by(year) %>% summarize(tournaments = sum(count)) %>% ggplot(aes(x=year, y=tournaments)) + geom_smooth()
+g
+
+
+```
