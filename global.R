@@ -1,6 +1,7 @@
 library(data.table)
 
 #install.packages("shinydashboard")
+library(rsconnect)
 library(shinydashboard)
 library(shiny)
 library(stringr)
@@ -14,7 +15,7 @@ source('Helpers/MatchDataG.R')
 source('Helpers/DerivativesG.R')
 source('Helpers/CommonFunctions.R')
 source('Helpers/PointDataG.R')
-source('Helpers/NewbsVsVetsG.r')
+source('Helpers/NewbsVsVetsG.R')
 source('Helpers/TournamentPerformanceG.R')
 
 # read data
