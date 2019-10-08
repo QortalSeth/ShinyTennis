@@ -6,7 +6,10 @@ pointData = tabItem(tabName = 'pointData',
                       selectInput('chosenPlayer2P', label = "Choose Player2", choices = tournamentWinsFiltered$winner, selected = head(tournamentWinsFiltered$winner,2)),
                       box(plotOutput('meanPtsPerMatch')),
                       box(plotOutput('meanVolleyLength'))
-                    ))
+                    ),
+                    fluidRow(div(p('The plots above are divided into secitons based on the number of sets in the match. 
+                                   Best of 3 set matches are labeled with a 2. Best of 5 set matches are labeled with a 3. ')))
+                    )
 
 
 matchData = tabItem(tabName = 'matchData',
