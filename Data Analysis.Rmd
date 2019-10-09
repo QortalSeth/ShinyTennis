@@ -25,7 +25,7 @@ matchIDSeperator = function(df)
 {
   returnValue = df %>% separate(match_id, sep = '-',c('date','gender','tournamentName','round','player1','player2'), remove = FALSE) %>% 
   mutate(date = as.Date(date, format = "%Y%m%d" )) %>% 
-    select(match_id, date, gender, tournamentName, round, player1,player2, Pt,Set1,Set2,Gm1,Gm2, Pts, Serving, PtWinner, rallyLen, Notes)
+    select(match_id, date, gender, tournamentName, round, player1,player2, Pt,Set1,Set2,Gm1,Gm2, Pts, Serving, PtWinner, rallyLen)
   
   returnValue = returnValue %>% mutate(
     month = as.numeric(substr(date, 6,7 )), 
@@ -75,6 +75,9 @@ womenPoints = cleanPlayerNames(womenPoints)
 
 menPoints
 womenPoints
+
+write.csv(menPoints, file = "menPoints.csv")
+write.csv(womenPoints, file = "womenPoints.csv")
 
 points = full_join(menPoints, womenPoints) %>% mutate(winner = ifelse(PtWinner==1,player1,player2), loser = ifelse(PtWinner==1,player2,player1)) 
 
